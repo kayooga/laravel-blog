@@ -1,0 +1,42 @@
+・Laravelのバージョン確認
+php artisan --version
+
+・ファイル生成//テーブル名は複数形
+php artisan make:migration create_テーブル名_table
+
+・カラム追加
+add_カラム名_to_テーブル名_table
+
+・カラム変更ファイルの生成
+php artisan make:migration change_テーブル名_table --table テーブル名
+php artisan make:migration change_blogs_table --table blogs
+
+・migrationの実行
+php artisan migrate
+
+・モデルの作り方//テーブル名は単数形で最初は大文字
+php artisan make:model モデル名
+
+・コントローラーをつくる
+php artisan make:controller コントローラー名Controller
+
+・Bootstrapの導入
+composer require laravel/ui
+php artisan ui bootstrap
+
+・シーダーファイルの生成
+php artisan make:seeder ファイル名
+
+・シーダーの実行
+php artisan db:seed
+
+・Factoryのファイルの生成
+php artisan make:factory ファイル名
+
+・フォームリクエストクラスの生成
+php artisan make:request BlogRequest
+
+・バリデーションの日本語化
+php -r "copy('https://readouble.com/laravel/8.x/ja/install-ja-lang-files.php', 'install-ja-lang.php');"
+php -f install-ja-lang.php
+php -r "unlink('install-ja-lang.php');"

@@ -1,0 +1,157 @@
+・マイグレーション
+SQLを直接使わなくてもDBを管理できる仕組み
+
+・テーブル作成の流れ
+*１テーブル1ファイル
+1，マイグレーションファイルを生成
+2，ファイルにテーブル定義を書く
+3，マイグレーションを実行し、DBに反映
+
+・マイグレーションの中身
+upメソッド  実行（作成）
+downメソッド 元に戻す（削除）
+Schema::create  テーブルを作成
+カラムの作成はBlueprintオブジェクト
+$table->string('name') 名前カラムを作成
+
+・Eloquent ORM
+Laravelで提供されているデータ操作のための機能であり、モデルとDBを対応づける
+ORMとはプログラミング技法//Object Relational Mapping
+データベースから取得したデータをオブジェクトとして扱える
+protected $fillable = ['カラム名'] ユーザーの情報を保存
+protected $guarded = ['カラム名'] 変えないもの
+どちからを書く
+
+・ルーティング
+ブラウザから任意のURLにアクセスがあった場合、どのController処理を動かすのかを定義する
+route/web.phpファイルに処理を記述する
+HTTPメソッドも定義できる(GET,POST,PUT,DELETE)
+Route::get('blogs','BlogController@showList')
+Laravel既存機能のRouteファサードを使う
+HTTPメソッドの指定(GET,POST,DELETE...)
+任意のＵＲＬを指定
+作ったControllerを指定//class
+Controllerのメソッド名（任意）を指定//分かりやすいもの
+blogsにアクセスしたらshowListというメソッドを自動で処理する
+
+・コントローラー
+routeで定義されたHTTPリクエストの処理を書いていく
+Laravelの既存のコントローラークラスを拡張して作られる
+例）ブログの処理をするコントローラーはBrogControllerでまとめる
+//ブログの表示、削除、登録の処理など
+
+・Blade
+Laravelのテンプレートエンジン
+PHPを直接記述できる
+テンプレートの継承やデータの受け渡しができる
+@extends('bladeを指定')
+かっこ内のbladeファイルを継承する
+@yield('content')
+かっこ内が同じ@sectionを読み込む
+@section('content')~@endsection
+このブロック内容をyieldに追加する
+@include(file)
+かっこ内のファイルを読み込む
+
+・seederシーだー
+Laravelの既存のクラスのひとつ
+テストデータを簡単にDBに設定できるしくみ
+データ作成の処理をrunメソッドに書いていく
+DatabaseSeeder.phpで生成したシーダーを呼び出す
+
+・Factory
+Eloquentモデルを使ってテストデータを作る際に便利な機能
+Factoryを使うとEloquentモデルに自動でデフォルト値を設定できる
+（名前とか住所とかを適当にランダムで生成してくれる）
+１つ定義を用意しておけば、複数のデータを一括で作ることができる
+Faker PHPライブラリを使うことでダミーデータをランダムで生成してくれる
+
+・データ表示の流れ
+①Eloquentモデルのメソッドを使ってDBからデータをとりだす
+$blogs = Blog::all(); //全てのblogのデータを取り出す
+②Controllerでモデルクラスを呼び出して、Viewにデータを渡す
+例）引数で渡す  第二引数に配列で渡す
+return view('blog.list',['blogs' => $blogs]);
+③Blade(view)でデータを表示する
+PHPを直接書き込んで表示
+@foreach($blogs as $blog)
+    {{ $blog->title }}  //波括弧で囲って取り出す
+@endforeach
+
+・リンク表示の流れ
+①リンクを作って飛ばす
+/blog/1
+②routeでリンクのIDを受け取ってControllerに渡す
+/routes/web.php
+Route::get('/blog/{id}','BlogCntroller@showDetail')
+//getで飛ばすリンク、Controllerの@メソッド
+//{id}ルートパラメータ $idで値をControllerのshowDetailに渡せる
+③Modelで該当IDデータを取り出す
+Eloquentメソッドを使う
+１番目のブログモデルを取得する場合
+$blog = Blog::find(1)
+//BlogのID=1を取ってこれる
+最初にマッチしたモデルを取得する場合
+$blog = Blog::where('id','=','1')->first()
+④viewで表示する
+ControllerのShowDetailから渡す
+詳細表示用のBladeを作って表示
+
+・登録の流れ
+①フォームからデータを飛ばす
+CSRF(シーサーフ)保護が必要
+②routeで受け取りControllerへ渡す
+③フォームリクエストでバリデート
+Illuminate\Http\Request
+validateメソッド
+バリデーションのルールを作成でき、失敗したら$errorsを返せる(sessionで保護される)
+例）titleが必須または255未満のルール
+Request->validate(['title' => 'reuired | mas:255']); |または
+④Modelでデータを登録  $fillableか$guardedを設定して保護する
+createメソッドを使う
+$blog = Blog::create(['title' => 'タイトル']);
+saveメソッドを使う
+$blog = new Blog;
+$blog->fill(['title' => 'タイトル']);
+$blog->save();
+トランザクション処理を入れる
+⑤エラー処理
+DBエラーの対処(try～catch)
+
+・編集の流れ
+①ブログ一覧からＩＤで編集フォームへ
+saveメソッドを使う 内容の差分だけ更新する
+$blog = Blog::fiond(1);
+$blog-<fill(['title' => 'タイトル']);
+$blog->save;
+updateメソッドを使う  内容が同じであっても更新
+Blog::where('id','=',1)->update(['title' => 'タイトル']);
+②編集フォームからＰＯＳＴで送る
+③フォームリクエストでバリデート
+④Controller&④Modelでデータを登録
+⑤エラー処理
+1.route作成
+編集ボタン作成(IDを渡す)
+2.Controllerづくり
+IDからデータを取得してフォームに表示
+3.編集フォーム(view)づくり
+既存データを表示
+4.データ更新機能(Model)づくり
+更新・トランザクション・try-catch
+
+・バリデーションメッセージの日本語化
+resources\lang\ja\validation.php
+一番下に追加していく
+
+・削除の流れ
+①ブログ一覧からIDでrouteへ
+②routeからControllerへIDを渡す
+③Controllerで受け取る
+④Modelで該当IDを削除
+deleteメソッドを使う
+$blog = Blog::find(1);  主キーが分かっていない場合にwhereでもってきて使う
+$blog->delete();
+destroyメソッドを使う  ID(主キー)が分かってる場合はdestroy
+Blog::destroy(1);
+⑤エラー処理
+
