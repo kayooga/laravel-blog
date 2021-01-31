@@ -40,5 +40,3 @@ php artisan make:request BlogRequest
 php -r "copy('https://readouble.com/laravel/8.x/ja/install-ja-lang-files.php', 'install-ja-lang.php');"
 php -f install-ja-lang.php
 php -r "unlink('install-ja-lang.php');"
-
-aaa
